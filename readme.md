@@ -1,4 +1,4 @@
-Simple Pomodoro inside the terminal, made with Python and curses.
+Simple Pomodoro app inside the terminal, made with Python and curses.
 
 Make sure the following modules are installed and up to date:
 
