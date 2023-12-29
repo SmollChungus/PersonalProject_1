@@ -1,0 +1,6 @@
+__pycache__/
+assets/
+models/__pycache__/
+services/__pycache__/
+achievements.json
+sessions.json
