@@ -1,4 +1,5 @@
 Simple Pomodoro app inside the terminal, made with Python and curses.
+![image info](./Pomodoro_timer.png)
 
 Make sure the following modules are installed and up to date:
 
