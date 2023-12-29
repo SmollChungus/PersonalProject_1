@@ -4,8 +4,10 @@ Make sure the following modules are installed and up to date:
 
 curses
 
-For Windows: pip install windows-curses
+For Windows installation: pip install windows-curses
 
+To run the program, navigate to the root folder of the app inside terminal window.
+Then run: python main.py
 
 
 Currently something is going on with the arrow buttons, please run in terminal directly.
