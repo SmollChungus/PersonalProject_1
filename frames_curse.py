@@ -1,14 +1,20 @@
 import curses
 from helpers import get_com, send_com
+import os
+from list_helper import ListHelper
+
 
 class FramesCurse ():
-    def __init__ (self, stdscr, timer_curse, achievement_service_curse, session_service):
+    def __init__ (self, stdscr, timer_curse, achievement_service_curse, session_service, list_helper, current_list_item=0, list_menu_items=["New List", "Edit List", "Delete List", "Return"]):
         self.session_service = session_service
         self.stdscr = stdscr
         self.timer_curse = timer_curse
         self.timer_curse.is_running = timer_curse.is_running
         self.achievement_service_curse = achievement_service_curse
-
+        self.current_list_item = current_list_item
+        self.list_menu_items = list_menu_items
+        self.list_helper = list_helper
+        self.is_deleting_list = False
     def curse_achievement_frame (self): 
         pass # actual achievement service used is in achievement_service_curse.py, yeah i know
 
@@ -84,71 +90,139 @@ class FramesCurse ():
 
     def curse_com_frame (self):
         com_value = get_com(self.stdscr) or " " * 21
-        self.stdscr.move(0, 72)
-        self.stdscr.addstr(0, 72, f"*******************************", curses.color_pair(1))
-        self.stdscr.addstr(1, 72, f"*|~~~~~~~~~~~COM~~~~~~~~~~~~~|*", curses.color_pair(1))
-        self.stdscr.addstr(2, 72, f"*|===========================|*", curses.color_pair(1))
-        self.stdscr.addstr(3, 72, f"*| Sys: {com_value}|*", curses.color_pair(1))
-        self.stdscr.addstr(4, 72, f"*|===========================|*", curses.color_pair(1))
-        self.stdscr.addstr(5, 72, f"*******************************", curses.color_pair(1))
+        i,j = 0,69
+        self.stdscr.move(i, j)
+        self.stdscr.addstr(i, j, f"*******************************", curses.color_pair(1))
+        self.stdscr.addstr(i+1, j, f"*|~~~~~~~~~~~COM~~~~~~~~~~~~~|*", curses.color_pair(1))
+        self.stdscr.addstr(i+2, j, f"*|===========================|*", curses.color_pair(1))
+        self.stdscr.addstr(i+3, j, f"*| Sys: {com_value}|*", curses.color_pair(1))
+        self.stdscr.addstr(i+4, j, f"*|===========================|*", curses.color_pair(1))
+        self.stdscr.addstr(i+5, j, f"*******************************", curses.color_pair(1))
         self.stdscr.refresh()
 
     def curse_status_frame(self):
         if self.timer_curse.is_working == True:
             self.stdscr.move(13, 0)
-            self.stdscr.addstr(13, 0, f"***********************************")
-            self.stdscr.addstr(14, 0, f"*|~~~~~~~~~~~~~Status~~~~~~~~~~~~|*")
-            self.stdscr.addstr(15, 0, f"*|==============WORK=============|*")
-            self.stdscr.addstr(16, 0, f"*|   _.--._  _.--._              |*")
-            self.stdscr.addstr(17, 0, f"*|\\\\:;:;:;:;:;\\:;:;:;:;:\\        |*")
-            self.stdscr.addstr(18, 0, f"*| \\\\:;:;:;:;:;\\:;:;:;:;:\\       |*")
-            self.stdscr.addstr(19, 0, f"*|  \\\\:;:;:;:;:;\\:;:;:;:;:\\      |*")
-            self.stdscr.addstr(20, 0, f"*|   \\\\:;:;:;:;:;\\;::;:;:;:\\     |*")
-            self.stdscr.addstr(21, 0, f"*|    \\\\:;:;::;:;:\\;:;:;::;:\\    |*")
-            self.stdscr.addstr(22, 0, f"*|     \\\\:;:;:_:--:\\_:--:_;:;\\   |*")
-            self.stdscr.addstr(23, 0, f"*|      \\\\_.-\"      :      \"._\\  |*")
-            self.stdscr.addstr(24, 0, f"*|       \`_..--\"\"--.;.--\"\"-.._=>|*")
-            self.stdscr.addstr(25, 0, f"*|===============================|*")
-            self.stdscr.addstr(26, 0, f"***********************************")
+            i = 12
+            self.stdscr.addstr(i, 0, f"***********************************")
+            self.stdscr.addstr(i+1, 0, f"*|~~~~~~~~~~~~~Status~~~~~~~~~~~~|*")
+            self.stdscr.addstr(i+2, 0, f"*|==============WORK=============|*")
+            self.stdscr.addstr(i+3, 0, f"*|   _.--._  _.--._              |*")
+            self.stdscr.addstr(i+4, 0, f"*|\\\\:;:;:;:;:;\\:;:;:;:;:\\        |*")
+            self.stdscr.addstr(i+5, 0, f"*| \\\\:;:;:;:;:;\\:;:;:;:;:\\       |*")
+            self.stdscr.addstr(i+6, 0, f"*|  \\\\:;:;:;:;:;\\:;:;:;:;:\\      |*")
+            self.stdscr.addstr(i+7, 0, f"*|   \\\\:;:;:;:;:;\\;::;:;:;:\\     |*")
+            self.stdscr.addstr(i+8, 0, f"*|    \\\\:;:;::;:;:\\;:;:;::;:\\    |*")
+            self.stdscr.addstr(i+9, 0, f"*|     \\\\:;:;:_:--:\\_:--:_;:;\\   |*")
+            self.stdscr.addstr(i+10, 0, f"*|      \\\\_.-\"      :      \"._\\  |*")
+            self.stdscr.addstr(i+11, 0, f"*|       \`_..--\"\"--.;.--\"\"-._=> |*")
+            self.stdscr.addstr(i+12, 0, f"*|===============================|*")
+            self.stdscr.addstr(i+13, 0, f"***********************************")
             self.stdscr.refresh()
         elif self.timer_curse.is_working == False:
             self.stdscr.move(11, 0)
-
-            self.stdscr.addstr(11, 0, f" ***********************************", curses.color_pair(3))
-            self.stdscr.addstr(12, 0, f" *|~~~~~~~~~~~~~Status~~~~~~~~~~~~|*", curses.color_pair(3))
-            self.stdscr.addstr(13, 0, f" *|=============BREAK=============|*", curses.color_pair(3))
-            self.stdscr.addstr(14, 0, f" *|                _'*            |*", curses.color_pair(3))
-            self.stdscr.addstr(15, 0, f" *|              -'               |*", curses.color_pair(3))
-            self.stdscr.addstr(16, 0, f" *|                     ;,'       |*", curses.color_pair(3))
-            self.stdscr.addstr(17, 0, f" *|              _;,'             |*"   , curses.color_pair(3))
-            self.stdscr.addstr(18, 0, f" *|     _o_    ;:;'               |*", curses.color_pair(3))
-            self.stdscr.addstr(19, 0, f" *| ,-.'---`.__ ;                 |*", curses.color_pair(3))
-            self.stdscr.addstr(20, 0, f" *|((j`=====',-'                  |*", curses.color_pair(3))
-            self.stdscr.addstr(21, 0, f" *| `-\     /                     |*", curses.color_pair(3))
-            self.stdscr.addstr(22, 0, f" *|    `-=-'                      |*", curses.color_pair(3))
-            self.stdscr.addstr(23, 0, f" *|===============================|*", curses.color_pair(3))
-            self.stdscr.addstr(24, 0, f" ***********************************", curses.color_pair(3))
+            i = 12
+            self.stdscr.addstr(i, 0, f" ***********************************", curses.color_pair(3))
+            self.stdscr.addstr(i+1, 0, f" *|~~~~~~~~~~~~~Status~~~~~~~~~~~~|*", curses.color_pair(3))
+            self.stdscr.addstr(i+2, 0, f" *|=============BREAK=============|*", curses.color_pair(3))
+            self.stdscr.addstr(i+3, 0, f" *|                _'*            |*", curses.color_pair(3))
+            self.stdscr.addstr(i+4, 0, f" *|              -'               |*", curses.color_pair(3))
+            self.stdscr.addstr(i+5, 0, f" *|                     ;,'       |*", curses.color_pair(3))
+            self.stdscr.addstr(i+6, 0, f" *|              _;,'             |*"   , curses.color_pair(3))
+            self.stdscr.addstr(i+7, 0, f" *|     _o_    ;:;'               |*", curses.color_pair(3))
+            self.stdscr.addstr(i+8, 0, f" *| ,-.'---`.__ ;                 |*", curses.color_pair(3))
+            self.stdscr.addstr(i+9, 0, f" *|((j`=====',-'                  |*", curses.color_pair(3))
+            self.stdscr.addstr(i+10, 0, f" *| `-\     /                     |*", curses.color_pair(3))
+            self.stdscr.addstr(i+11, 0, f" *|    `-=-'                      |*", curses.color_pair(3))
+            self.stdscr.addstr(i+12, 0, f" *|===============================|*", curses.color_pair(3))
+            self.stdscr.addstr(i+13, 0, f" ***********************************", curses.color_pair(3))
             self.stdscr.refresh()
 
     def curse_list_frame(self):
-        send_com("List loaded!         ")
-        self.stdscr.move(7,72)
-        self.stdscr.addstr(7, 72, f"***********************************", curses.color_pair(4))
-        self.stdscr.addstr(8, 72, f"*|~~~~~~~~~~~~~List~~~~~~~~~~~~~~|*", curses.color_pair(4))
-        self.stdscr.addstr(9, 72, f"*|===============================|*", curses.color_pair(4))
-        self.stdscr.addstr(10, 72, f"*| ############################# |*", curses.color_pair(4))
-        self.stdscr.addstr(11, 72, f"*| 1) List item one              |*", curses.color_pair(4))
-        self.stdscr.addstr(12, 72, f"*| 2) You can + or - items       |*", curses.color_pair(4))
-        self.stdscr.addstr(13, 72, f"*| 3) Future implementation:     |*", curses.color_pair(4))
-        self.stdscr.addstr(14, 72, f"*|    - Sound on events          |*", curses.color_pair(4))
-        self.stdscr.addstr(15, 72, f"*|    - Animated UI elements     |*", curses.color_pair(4))
-        self.stdscr.addstr(16, 72, f"*|    - List function            |*", curses.color_pair(4))
-        self.stdscr.addstr(17, 72, f"*|    - Bugfixes (:              |*", curses.color_pair(4))
-        self.stdscr.addstr(18, 72, f"*| 4) Main take-aways:           |*", curses.color_pair(4))
-        self.stdscr.addstr(19, 72, f"*|    - Stay consistent in with  |*", curses.color_pair(4))
-        self.stdscr.addstr(20, 72, f"*|        file management        |*", curses.color_pair(4))
-        self.stdscr.addstr(21, 72, f"*|    - Dont waste too much time |*", curses.color_pair(4))
-        self.stdscr.addstr(22, 72, f"*|        on a stupid curses UI  |*", curses.color_pair(4))
-        self.stdscr.addstr(23, 72, f"*|===============================|*", curses.color_pair(4))
-        self.stdscr.addstr(24, 72, f"***********************************", curses.color_pair(4))
+        i, j = 0, 101
+        self.stdscr.move(i, j)
+        # Get the list of items
+        data = self.list_helper.read_json_file()
+        items = data['items']
+
+
+        # Define the starting and ending lines for the list
+        start_line = 4
+        end_line = 36
+
+        # Print each item in the list, but don't exceed the frame size
+        line = start_line
+
+        self.stdscr.addstr(i, j, f"***************************************************************************", curses.color_pair(4))
+        self.stdscr.addstr(i+1, j, f"*|~~~~~~~~~~~~~List~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|*", curses.color_pair(4))
+        self.stdscr.addstr(i+2, j, f"*|=======================================================================|*", curses.color_pair(4))
+        self.stdscr.addstr(i+3, j, f"*| ##################################################################### |*", curses.color_pair(4))
+        if not self.is_deleting_list:
+            for index, item in enumerate(items, start=1):
+                # Split the item into lines
+                item_lines = item.split('\n')
+
+                for line_index, item_line in enumerate(item_lines):
+                    if line > end_line:
+                        break
+                    # Print the index only for the first line of each item
+                    if line_index == 0:
+                        if len(item_lines) != 1:
+                            self.stdscr.addstr(i+line, j, f"*| {index}) {item_line: <65} |*", curses.color_pair(4))
+                        else:
+                            self.stdscr.addstr(i+line, j, f"*| {index}) {item_line: <65} |* \n", curses.color_pair(4))
+                    elif line_index == len(item_lines) - 1:
+                        self.stdscr.addstr(i+line, j, f"*|     {item_line: <65} |*", curses.color_pair(4))
+                    else:
+                        self.stdscr.addstr(i+line, j, f"*|     {item_line: <65} |* \n,", curses.color_pair(4))
+                    line += 1
+                    self.stdscr.addstr(line+2, j, f"*|=======================================================================|*", curses.color_pair(4))
+                    self.stdscr.addstr(line+1, j, f"***************************************************************************", curses.color_pair(4))
+        elif self.is_deleting_list:
+            for index, item in enumerate(items, start=1):
+                if line == self.selected_item_index + 4:
+                    # Highlight the selected item
+                    self.stdscr.attron(curses.color_pair(1))
+                    self.stdscr.addstr(i+line, j, f"*| {index}) {item_line: <65} |*", curses.color_pair(4))
+                    self.stdscr.attroff(curses.color_pair(1))
+                    # Save the selected item index
+                    deleting_item_index = index - 1
+                else:
+                    self.stdscr.addstr(i+line, j, f"*| {index}) {item_line: <65} |*", curses.color_pair(4))
+
+
+            self.stdscr.addstr(line+1, j, f"*|=======================================================================|*", curses.color_pair(4))
+            self.stdscr.addstr(line+2, j, f"***************************************************************************", curses.color_pair(4))
+            self.stdscr.move(0, 0)
+            self.stdscr.refresh()
+
+
+
+    def curse_navigation_frame(self):
+        i, j = 7, 69
+        self.list_menu_items = ["New List", "Edit List", "Delete List", "Return"]
         
+        self.stdscr.move(i, j)
+        self.stdscr.addstr(i, j, f"******************************", curses.color_pair(1))
+        self.stdscr.addstr(i+1, j, f"*|~~~~~Submenu~Navigation~~~|*", curses.color_pair(1))
+        self.stdscr.addstr(i+2, j, f"*|==========================|*", curses.color_pair(1))
+        for k, item in enumerate(self.list_menu_items):
+            # Format the item string to be 20 characters long, padded with spaces if necessary
+            item_str = f"{k+1}. {item:<20}"
+            if k == self.current_list_item:
+                self.stdscr.addstr(i+3, j, f"*| {item_str} |*", curses.A_REVERSE)
+                i += 1
+            else:
+                self.stdscr.addstr(i+3, j, f"*| {item_str} |*", curses.color_pair(k+2)) 
+                i +=1
+        
+        self.stdscr.addstr(i+4, j, f"*|==========================|*", curses.color_pair(1))
+        self.stdscr.addstr(i+5, j, f"******************************", curses.color_pair(1))
+        # If the user chooses "Return", clear the submenu
+        if self.current_list_item == len(self.list_menu_items) - 1 and self.stdscr.getch() == ord('\n'):
+            for line in range(i, i+6):
+                self.stdscr.move(line, j)
+                self.stdscr.clrtoeol()
+
+        self.stdscr.refresh()
+

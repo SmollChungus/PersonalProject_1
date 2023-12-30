@@ -71,7 +71,7 @@ class PomodoroTimerCurse:
                 else:
                     send_com("Back to work!        ")
                     self.is_working = True
-                    self.timer_seconds = self.work_duration
+                    self.timer_seconds = self.work_duration*60
                     
                 
                 
